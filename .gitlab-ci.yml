@@ -9,7 +9,7 @@ build-job:
     - cd /usr/src/gtest
     - cmake .
     - make
-    - cp lib/*.a /usr/lib
+    - cp libgtest.a libgtest_main.a /usr/lib # ✅ Исправленный путь
   script:
     - echo "Compiling the code..."
     - mkdir -p build
