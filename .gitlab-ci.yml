@@ -4,11 +4,13 @@ stages:
 
 build-job:
   stage: build
+  before_script:
+    - apt-get update && apt-get install -y cmake g++ make
   script:
     - echo "Compiling the code..."
     - mkdir build
     - cd build
-    - cmake -DCMAKE_TOOLCHAIN_FILE="/path/to/vcpkg/scripts/buildsystems/vcpkg.cmake" ..
+    - cmake -DCMAKE_TOOLCHAIN_FILE="/root/vcpkg/scripts/buildsystems/vcpkg.cmake" ..
     - cmake --build . --config Debug
     - echo "Compile complete."
   artifacts:
