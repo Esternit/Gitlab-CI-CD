@@ -6,14 +6,16 @@ build-job:
   stage: build
   before_script:
     - apt-get update && apt-get install -y cmake g++ make libgtest-dev
-    - cd /usr/src/gtest && cmake . && make && cp *.a /usr/lib
-
+    - cd /usr/src/gtest
+    - cmake .
+    - make
+    - cp lib/*.a /usr/lib
   script:
     - echo "Compiling the code..."
-    - mkdir build
+    - mkdir -p build
     - cd build
-    - cmake ..
-    - cmake --build . --config Debug
+    - cmake -DCMAKE_BUILD_TYPE=Debug ..
+    - cmake --build .
     - echo "Compile complete."
   artifacts:
     paths:
@@ -26,7 +28,7 @@ test-job:
   script:
     - echo "Running tests..."
     - cd build
-    - ./Debug/test_runner
+    - ./test_runner
   dependencies:
     - build-job
   tags:
