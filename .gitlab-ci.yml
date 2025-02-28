@@ -4,9 +4,10 @@ stages:
 
 build-job:
   stage: build
-  before_script:
-    - apt-get update && apt-get install -y cmake g++ make
-  script:
+before_script:
+  - apt-get update && apt-get install -y cmake g++ make libgtest-dev
+  - cd /usr/src/gtest && cmake . && make && cp *.a /usr/lib
+script:
     - echo "Compiling the code..."
     - mkdir build
     - cd build
