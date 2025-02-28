@@ -5,12 +5,8 @@ stages:
 build-job:
   stage: build
   before_script:
-    - apt-get update && apt-get install -y cmake g++ make libgtest-dev
-    - cd /usr/src/gtest
-    - cmake .
-    - make
-    - cp libgtest.a libgtest_main.a /usr/lib
-    - cd $CI_PROJECT_DIR # ✅ Возвращаемся в проект перед сборкой
+    - apt-get update && apt-get install -y cmake g++ make
+    - cd $CI_PROJECT_DIR
 
   script:
     - echo "Compiling the code..."

@@ -5,7 +5,17 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 # Подключаем Google Test
-find_package(GTest CONFIG REQUIRED)
+# find_package(GTest CONFIG REQUIRED)
+
+include(FetchContent)
+FetchContent_Declare(
+    googletest
+    URL https://github.com/google/googletest/archive/refs/tags/v1.14.0.zip
+)
+FetchContent_MakeAvailable(googletest)
+
+enable_testing()
+include(GoogleTest)
 
 # Основной исполняемый файл
 add_executable(main_app src/main.cpp src/math_utils.cpp)
