@@ -10,7 +10,7 @@ build-job:
     - echo "Compiling the code..."
     - mkdir build
     - cd build
-    - cmake -DCMAKE_TOOLCHAIN_FILE="/root/vcpkg/scripts/buildsystems/vcpkg.cmake" ..
+    - cmake ..
     - cmake --build . --config Debug
     - echo "Compile complete."
   artifacts:
