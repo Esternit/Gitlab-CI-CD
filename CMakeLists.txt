@@ -4,15 +4,18 @@ project(GTestProject)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
-# Подключаем Google Test
-# find_package(GTest CONFIG REQUIRED)
+# Проверяем, установлен ли GTest в системе
+find_package(GTest CONFIG)
 
-include(FetchContent)
-FetchContent_Declare(
-    googletest
-    URL https://github.com/google/googletest/archive/refs/tags/v1.14.0.zip
-)
-FetchContent_MakeAvailable(googletest)
+if(NOT GTest_FOUND)
+    message(STATUS "GTest не найден, загружаем через FetchContent...")
+    include(FetchContent)
+    FetchContent_Declare(
+        googletest
+        URL https://github.com/google/googletest/archive/refs/tags/v1.14.0.zip
+    )
+    FetchContent_MakeAvailable(googletest)
+endif()
 
 enable_testing()
 include(GoogleTest)
