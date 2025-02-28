@@ -9,7 +9,9 @@ build-job:
     - cd /usr/src/gtest
     - cmake .
     - make
-    - cp libgtest.a libgtest_main.a /usr/lib # ✅ Исправленный путь
+    - cp libgtest.a libgtest_main.a /usr/lib
+    - cd $CI_PROJECT_DIR # ✅ Возвращаемся в проект перед сборкой
+
   script:
     - echo "Compiling the code..."
     - mkdir -p build
@@ -17,6 +19,7 @@ build-job:
     - cmake -DCMAKE_BUILD_TYPE=Debug ..
     - cmake --build .
     - echo "Compile complete."
+
   artifacts:
     paths:
       - build/
