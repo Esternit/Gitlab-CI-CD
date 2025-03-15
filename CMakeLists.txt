@@ -19,9 +19,9 @@ endif()
 enable_testing()
 include(GoogleTest)
 
-add_executable(main_app src/main.cpp src/math_utils.cpp)
+add_executable(main_app src/main.cpp src/Matrix.cpp)
 
-add_executable(test_runner tests/test_math_utils.cpp src/math_utils.cpp)
+add_executable(test_runner tests/test_matrix.cpp src/Matrix.cpp)
 target_include_directories(test_runner PRIVATE ${CMAKE_SOURCE_DIR}/src)
 target_link_libraries(test_runner GTest::gtest GTest::gtest_main)
 

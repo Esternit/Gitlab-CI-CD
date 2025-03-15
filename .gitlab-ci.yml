@@ -1,21 +1,25 @@
 stages:
   - build
   - test
+  - deploy
+  - package
+  - package-test
+
+variables:
+  BUILD_DIR: "build"
 
 build-job:
   stage: build
   before_script:
     - apt-get update && apt-get install -y cmake g++ make
     - cd $CI_PROJECT_DIR
-
   script:
     - echo "Compiling the code..."
-    - mkdir -p build
-    - cd build
-    - cmake -DCMAKE_BUILD_TYPE=Debug ..
+    - mkdir -p $BUILD_DIR
+    - cd $BUILD_DIR
+    - cmake -DCMAKE_BUILD_TYPE=Release ..
     - cmake --build .
     - echo "Compile complete."
-
   artifacts:
     paths:
       - build/
@@ -26,9 +30,59 @@ test-job:
   stage: test
   script:
     - echo "Running tests..."
-    - cd build
-    - ./test_runner
+    - cd $BUILD_DIR
+    - ctest --verbose
   dependencies:
     - build-job
+  artifacts:
+    when: always
+    reports:
+      junit: build/Testing/Temporary/LastTest.log
+  tags:
+    - ubuntu
+
+deploy-job:
+  stage: deploy
+  script:
+    - echo "Deploying artifacts..."
+    - cp -r $BUILD_DIR/main_app /deploy/
+  dependencies:
+    - test-job
+  artifacts:
+    paths:
+      - /deploy/main_app
+  tags:
+    - ubuntu
+
+package-job:
+  stage: package
+  before_script:
+    - apt-get update && apt-get install -y cpack dpkg rpm
+  script:
+    - echo "Building .deb and .rpm packages..."
+    - cd $BUILD_DIR
+    - mkdir -p packages
+    - cpack -G DEB -B packages
+    - cpack -G RPM -B packages
+  dependencies:
+    - deploy-job
+  artifacts:
+    paths:
+      - packages/
+  tags:
+    - ubuntu
+
+package-test-job:
+  stage: package-test
+  before_script:
+    - apt-get update
+  script:
+    - echo "Testing package installation..."
+    - sudo dpkg -i build/packages/*.deb || sudo rpm -i build/packages/*.rpm
+    - test -f /usr/local/bin/main_app
+  dependencies:
+    - package-job
+  artifacts:
+    when: always
   tags:
     - ubuntu
