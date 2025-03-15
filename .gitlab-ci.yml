@@ -65,6 +65,7 @@ package-job:
     - cpack -G DEB -B packages
     - cpack -G RPM -B packages
   dependencies:
+    - build-job
     - deploy-job
   artifacts:
     paths:
@@ -81,6 +82,7 @@ package-test-job:
     - sudo dpkg -i build/packages/*.deb || sudo rpm -i build/packages/*.rpm
     - test -f /usr/local/bin/main_app
   dependencies:
+    - build-job
     - package-job
   artifacts:
     when: always
