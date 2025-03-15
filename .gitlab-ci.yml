@@ -22,7 +22,7 @@ build-job:
     - echo "Compile complete."
   artifacts:
     paths:
-      - build/
+      - $BUILD_DIR
   tags:
     - ubuntu
 
