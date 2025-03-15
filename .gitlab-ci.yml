@@ -11,7 +11,7 @@ variables:
 build-job:
   stage: build
   before_script:
-    - apt-get update && apt-get install -y cmake g++ make
+    - apt-get update && apt-get install -y cmake g++ make dpkg rpm
     - cd $CI_PROJECT_DIR
   script:
     - echo "Compiling the source code..."
