@@ -58,8 +58,6 @@ deploy-job:
 
 package-job:
   stage: package
-  before_script:
-    - apt-get update && apt-get install -y cpack dpkg rpm
   script:
     - echo "Building .deb and .rpm packages..."
     - cd $BUILD_DIR
