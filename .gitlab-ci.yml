@@ -45,6 +45,7 @@ deploy-job:
   stage: deploy
   script:
     - echo "Deploying artifacts..."
+    - mkdir -p /deploy
     - cp -r $BUILD_DIR/main_app /deploy/
   dependencies:
     - build-job
