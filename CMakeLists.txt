@@ -8,6 +8,7 @@ set(CPACK_PROJECT_NAME "Matrix")
 set(CPACK_PROJECT_VERSION "1.0.0")
 set(CPACK_PACKAGE_CONTACT "southonlyyt@gmail.com")
 set(CPACK_DEBIAN_PACKAGE_MAINTAINER "Esternit southonlyyt@gmail.com")
+set(CPACK_DEBIAN_PACKAGE_DEPENDS "libgtest-dev, libgmock-dev")
 include(CPack)
 
 find_package(GTest CONFIG)
