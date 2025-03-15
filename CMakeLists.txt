@@ -4,6 +4,10 @@ project(GTestProject)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
+set(CPACK_PROJECT_NAME "Matrix")
+set(CPACK_PROJECT_VERSION "1.0.0")
+include(CPack)
+
 find_package(GTest CONFIG)
 
 if(NOT GTest_FOUND)
