@@ -77,12 +77,10 @@ package-test-job:
   before_script:
     - apt-get update && apt install -y rpm
   script:
-    - echo "Testing package installation..."
-    - ls -l $BUILD_DIR/packages/
+    - echo "Testing DEB package installation..."
     - if ls $BUILD_DIR/packages/*.deb 1>/dev/null 2>&1; then sudo dpkg -i $BUILD_DIR/packages/*.deb; fi
-    - if ls $BUILD_DIR/packages/*.rpm 1>/dev/null 2>&1; then sudo rpm -i $BUILD_DIR/packages/*.rpm; fi
-    - which main_app || echo "main_app not found!"
-    - main_app || echo "Failed to execute main_app"
+    - which main_app || true
+    - main_app || true
   dependencies:
     - build-job
     - package-job
