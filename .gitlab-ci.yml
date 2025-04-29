@@ -1,4 +1,3 @@
-
 stages:
   - build
   - test
@@ -57,11 +56,13 @@ package-job:
   script:
     - echo "Installing for packaging..."
     - cd $BUILD_DIR
-    - apt install file
+    - apt update && apt install -y file
     - make install DESTDIR=install_dir
+
+    - echo "Running CPack with debug output..."
     - mkdir -p packages
-    - cpack -G DEB -B packages
-    - cpack -G RPM -B packages
+    - cpack --debug --verbose -G DEB -B packages
+    - cpack --debug --verbose -G RPM -B packages
   dependencies:
     - build-job
     - deploy-job
