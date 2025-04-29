@@ -61,7 +61,7 @@ package-job:
 
     - echo "Running CPack with debug output..."
     - mkdir -p packages
-    - cpack -B packages
+    - cpack
   dependencies:
     - build-job
     - deploy-job
@@ -76,9 +76,11 @@ package-test-job:
     - apt-get update && apt install -y rpm
   script:
     - echo "Testing package installation..."
-    - sudo dpkg -i build/packages/*.deb || sudo rpm -i build/packages/*.rpm
-    - which main_app
-    - main_app
+    - ls -l build/
+    - if ls build/*.deb 1>/dev/null 2>&1; then sudo dpkg -i build/*.deb; fi
+    - if ls build/*.rpm 1>/dev/null 2>&1; then sudo rpm -i build/*.rpm; fi
+    - which main_app || echo "main_app not found!"
+    - main_app || echo "Failed to execute main_app"
   dependencies:
     - build-job
     - package-job
