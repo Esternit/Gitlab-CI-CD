@@ -56,7 +56,7 @@ package-job:
   script:
     - echo "Installing for packaging..."
     - cd $BUILD_DIR
-    - apt update && apt install -y file
+    - apt update && apt install -y file rpm cpio fakeroot rpmbuild
     - make install DESTDIR=install_dir
 
     - echo "Running CPack with debug output..."
