@@ -69,7 +69,7 @@ package-job:
     - deploy-job
   artifacts:
     paths:
-      - packages/
+      - $BUILD_DIR/packages/
   tags:
     - ubuntu
 package-test-job:
