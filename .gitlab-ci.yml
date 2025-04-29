@@ -61,6 +61,7 @@ package-job:
   script:
     - echo "Installing for packaging..."
     - cd $BUILD_DIR
+    - apt install file
     - make install DESTDIR=install_dir
     - mkdir -p packages
     - cpack -G DEB -B packages
