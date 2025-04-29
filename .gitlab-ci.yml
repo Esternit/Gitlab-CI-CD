@@ -59,8 +59,9 @@ deploy-job:
 package-job:
   stage: package
   script:
-    - echo "Building .deb and .rpm packages..."
+    - echo "Installing for packaging..."
     - cd $BUILD_DIR
+    - make install DESTDIR=install_dir
     - mkdir -p packages
     - cpack -G DEB -B packages
     - cpack -G RPM -B packages
@@ -80,7 +81,8 @@ package-test-job:
   script:
     - echo "Testing package installation..."
     - sudo dpkg -i build/packages/*.deb || sudo rpm -i build/packages/*.rpm
-    - test -f /usr/local/bin/main_app
+    - which main_app
+    - main_app
   dependencies:
     - build-job
     - package-job

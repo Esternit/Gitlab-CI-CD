@@ -1,37 +1,24 @@
 cmake_minimum_required(VERSION 3.10)
-project(GTestProject)
+project(MatrixCalculator)
 
 set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_STANDARD_REQUIRED True)
-
-set(CPACK_PROJECT_NAME "Matrix")
-set(CPACK_PROJECT_VERSION "1.0.0")
-set(CPACK_PACKAGE_CONTACT "southonlyyt@gmail.com")
-set(CPACK_DEBIAN_PACKAGE_MAINTAINER "Esternit southonlyyt@gmail.com")
-set(CPACK_DEBIAN_PACKAGE_DEPENDS "libgtest-dev, libgmock-dev")
-set(CPACK_LOG_LEVEL "DEBUG")
-include(CPack)
-
-find_package(GTest CONFIG)
-
-if(NOT GTest_FOUND)
-    message(STATUS "GTest not found. FetchContent...")
-    include(FetchContent)
-    FetchContent_Declare(
-        googletest
-        URL https://github.com/google/googletest/archive/refs/tags/v1.14.0.zip
-    )
-    FetchContent_MakeAvailable(googletest)
-endif()
-
-enable_testing()
-include(GoogleTest)
 
 add_executable(main_app src/main.cpp src/Matrix.cpp)
 
+install(TARGETS main_app DESTINATION bin)
+
+include(CTest)
+enable_testing()
 add_executable(test_runner tests/test_matrix.cpp src/Matrix.cpp)
 target_include_directories(test_runner PRIVATE ${CMAKE_SOURCE_DIR}/src)
+find_package(GTest REQUIRED)
 target_link_libraries(test_runner GTest::gtest GTest::gtest_main)
+add_test(NAME MatrixTests COMMAND test_runner)
 
-enable_testing()
-add_test(NAME MathTests COMMAND test_runner)
+include(InstallRequiredSystemLibraries)
+set(CPACK_GENERATOR "DEB;RPM")
+set(CPACK_PACKAGE_NAME "matrix_calculator")
+set(CPACK_PACKAGE_VERSION "1.0.0")
+set(CPACK_PACKAGE_CONTACT "southonlyyt@gmail.com")
+set(CPACK_DEBIAN_PACKAGE_MAINTAINER "Esternit")
+include(CPack)
