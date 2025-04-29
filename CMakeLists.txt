@@ -31,3 +31,5 @@ add_executable(test_runner tests/test_matrix.cpp src/Matrix.cpp)
 target_include_directories(test_runner PRIVATE ${CMAKE_SOURCE_DIR}/src)
 target_link_libraries(test_runner GTest::gtest GTest::gtest_main)
 add_test(NAME MatrixTests COMMAND test_runner)
+
+include(CPack)
