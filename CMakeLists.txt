@@ -11,9 +11,6 @@ set(CPACK_DEBIAN_PACKAGE_DEPENDS "libc6 (>= 2.27)")
 
 set(CPACK_GENERATOR "DEB;RPM")
 set(CPACK_DEBIAN_FILE_NAME DEB-DEFAULT)
-set(CPACK_DEB_COMPONENT_INSTALL ON)
-set(CPACK_COMPONENTS_ALL runtime)
-set(CMAKE_INSTALL_DEFAULT_COMPONENT_NAME runtime)
 
 set(CPACK_PACKAGE_VERSION "1.0.0")
 
@@ -41,7 +38,7 @@ endif()
 
 add_executable(main_app src/main.cpp src/Matrix.cpp)
 
-install(TARGETS main_app DESTINATION bin COMPONENT runtime)
+install(TARGETS main_app DESTINATION bin)
 
 enable_testing()
 add_executable(test_runner tests/test_matrix.cpp src/Matrix.cpp)
