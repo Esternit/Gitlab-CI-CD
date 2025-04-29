@@ -9,7 +9,19 @@ set(CPACK_PACKAGE_VERSION "1.0.0")
 set(CPACK_PACKAGE_CONTACT "southonlyyt@gmail.com")
 set(CPACK_DEBIAN_PACKAGE_MAINTAINER "Esternit")
 set(CPACK_DEBIAN_PACKAGE_DEPENDS "libc6 (>= 2.27)")
+
+if(NOT DEFINED CMAKE_SYSTEM_NAME)
+    set(CMAKE_SYSTEM_NAME Linux)
+endif()
+
+if(NOT DEFINED CPACK_SYSTEM_NAME)
+    set(CPACK_SYSTEM_NAME ${CMAKE_SYSTEM_NAME})
+endif()
+
+set(CPACK_GENERATOR "DEB;RPM")
+
 include(InstallRequiredSystemLibraries)
+include(CPack)
 
 find_package(GTest CONFIG)
 if(NOT GTest_FOUND)
@@ -31,5 +43,3 @@ add_executable(test_runner tests/test_matrix.cpp src/Matrix.cpp)
 target_include_directories(test_runner PRIVATE ${CMAKE_SOURCE_DIR}/src)
 target_link_libraries(test_runner GTest::gtest GTest::gtest_main)
 add_test(NAME MatrixTests COMMAND test_runner)
-
-include(CPack)
