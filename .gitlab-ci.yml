@@ -66,7 +66,6 @@ package-job:
     - mkdir -p deb_build/usr/local/bin
     - cp $BUILD_DIR/main_app deb_build/usr/local/bin/
 
-    # Create control file
     - |
       cat <<EOF > deb_build/DEBIAN/control
       Package: $PACKAGE_NAME
@@ -80,7 +79,6 @@ package-job:
 
     - dpkg-deb --build deb_build packages/${PACKAGE_NAME}_${PACKAGE_VERSION}.deb
 
-    # RPM package
     - rpmdev-setuptree
     - mkdir -p ~/rpmbuild/SOURCES/${PACKAGE_NAME}
     - cp $BUILD_DIR/main_app ~/rpmbuild/SOURCES/${PACKAGE_NAME}/
