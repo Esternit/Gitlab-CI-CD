@@ -7,19 +7,22 @@ stages:
 
 variables:
   BUILD_DIR: "build"
+  PACKAGE_NAME: "matrix"
+  PACKAGE_VERSION: "1.0.0"
+
+.default_before_script: &default_before_script
+  before_script:
+    - apt-get update
+    - apt-get install -y cmake g++ make dpkg rpm rpm-build rpmdevtools tar file
 
 build-job:
   stage: build
-  before_script:
-    - apt-get update && apt-get install -y cmake g++ make dpkg rpm
-    - cd $CI_PROJECT_DIR
+  <<: *default_before_script
   script:
-    - echo "Compiling the source code..."
     - mkdir -p $BUILD_DIR
     - cd $BUILD_DIR
     - cmake -DCMAKE_BUILD_TYPE=Release ..
     - cmake --build .
-    - echo "Compile complete."
   artifacts:
     paths:
       - $BUILD_DIR
@@ -28,8 +31,8 @@ build-job:
 
 test-job:
   stage: test
+  <<: *default_before_script
   script:
-    - echo "Running tests..."
     - cd $BUILD_DIR
     - ctest --verbose
   dependencies:
@@ -44,9 +47,8 @@ test-job:
 deploy-job:
   stage: deploy
   script:
-    - echo "Deploying artifacts..."
     - mkdir -p /deploy
-    - cp -r $BUILD_DIR/main_app /deploy/
+    - cp $BUILD_DIR/main_app /deploy/
   dependencies:
     - build-job
     - test-job
@@ -58,14 +60,66 @@ deploy-job:
 
 package-job:
   stage: package
+  <<: *default_before_script
   script:
-    - echo "Installing for packaging..."
-    - cd $BUILD_DIR
-    - apt install file
-    - make install DESTDIR=install_dir
+    - mkdir -p deb_build/DEBIAN
+    - mkdir -p deb_build/usr/local/bin
+    - cp $BUILD_DIR/main_app deb_build/usr/local/bin/
+
+    # Create control file
+    - |
+      cat <<EOF > deb_build/DEBIAN/control
+      Package: $PACKAGE_NAME
+      Version: $PACKAGE_VERSION
+      Section: base
+      Priority: optional
+      Architecture: amd64
+      Maintainer: Esternit <southonlyyt@gmail.com>
+      Description: Matrix calculator app
+      EOF
+
+    - dpkg-deb --build deb_build packages/${PACKAGE_NAME}_${PACKAGE_VERSION}.deb
+
+    # RPM package
+    - rpmdev-setuptree
+    - mkdir -p ~/rpmbuild/SOURCES/${PACKAGE_NAME}
+    - cp $BUILD_DIR/main_app ~/rpmbuild/SOURCES/${PACKAGE_NAME}/
+    - tar -czf ~/rpmbuild/SOURCES/${PACKAGE_NAME}.tar.gz -C ~/rpmbuild/SOURCES ${PACKAGE_NAME}
+
+    - |
+      cat <<EOF > ~/rpmbuild/SPECS/${PACKAGE_NAME}.spec
+      Name:           $PACKAGE_NAME
+      Version:        $PACKAGE_VERSION
+      Release:        1%{?dist}
+      Summary:        Matrix calculator
+      License:        MIT
+      Source0:        ${PACKAGE_NAME}.tar.gz
+      BuildArch:      x86_64
+
+      %description
+      Matrix calculator app.
+
+      %prep
+      %setup -q
+
+      %build
+
+      %install
+      mkdir -p %{buildroot}/usr/local/bin
+      cp -a main_app %{buildroot}/usr/local/bin/main_app
+
+      %files
+      /usr/local/bin/main_app
+
+      %changelog
+      * Tue Apr 29 2025 Esternit <southonlyyt@gmail.com> - ${PACKAGE_VERSION}-1
+      - Initial build
+      EOF
+
+    - rpmbuild -ba ~/rpmbuild/SPECS/${PACKAGE_NAME}.spec
     - mkdir -p packages
-    - cpack -G DEB -B packages
-    - cpack -G RPM -B packages
+    - cp ~/rpmbuild/RPMS/x86_64/*.rpm packages/
+
   dependencies:
     - build-job
     - deploy-job
@@ -79,13 +133,20 @@ package-test-job:
   stage: package-test
   before_script:
     - apt-get update
+    - apt-get install -y rpm
   script:
     - echo "Testing package installation..."
-    - sudo dpkg -i build/packages/*.deb || sudo rpm -i build/packages/*.rpm
-    - which main_app
-    - main_app
+    - |
+      if dpkg -i packages/*.deb; then
+        echo "DEB installed"
+      elif rpm -i packages/*.rpm; then
+        echo "RPM installed"
+      else
+        echo "Installation failed" && exit 1
+      fi
+    - which main_app || echo "main_app not in PATH"
+    - main_app || echo "main_app failed to run"
   dependencies:
-    - build-job
     - package-job
   artifacts:
     when: always
