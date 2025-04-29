@@ -1,19 +1,17 @@
+
 stages:
   - build
   - test
   - deploy
   - package
   - package-test
-
 variables:
   BUILD_DIR: "build"
-  INSTALL_DIR: "$CI_PROJECT_DIR/install_dir"
-
 build-job:
   stage: build
   before_script:
-    - apt-get update
-    - apt-get install -y cmake g++ make dpkg rpm rpm2cpio fakeroot tar file
+    - apt-get update && apt-get install -y cmake g++ make dpkg rpm
+    - cd $CI_PROJECT_DIR
   script:
     - echo "Compiling the source code..."
     - mkdir -p $BUILD_DIR
@@ -26,7 +24,6 @@ build-job:
       - $BUILD_DIR
   tags:
     - ubuntu
-
 test-job:
   stage: test
   script:
@@ -41,7 +38,6 @@ test-job:
       junit: build/Testing/Temporary/LastTest.log
   tags:
     - ubuntu
-
 deploy-job:
   stage: deploy
   script:
@@ -56,92 +52,35 @@ deploy-job:
       - /deploy/main_app
   tags:
     - ubuntu
-
 package-job:
   stage: package
-  before_script:
-    - apt-get update
-    - apt-get install -y fakeroot rpm rpm2cpio dpkg-dev tar file
   script:
-    - echo "Preparing manual installation directory..."
+    - echo "Installing for packaging..."
     - cd $BUILD_DIR
-    - mkdir -p $CI_PROJECT_DIR/install_dir
-    - make install DESTDIR=$CI_PROJECT_DIR/install_dir
-
-    - ls -laR $CI_PROJECT_DIR/install_dir
-    - test -f $CI_PROJECT_DIR/install_dir/usr/bin/main_app || (echo "main_app not found!" && exit 1)
-
-    - echo "Building DEB..."
-    - mkdir -p deb_package/DEBIAN
-    - |
-      cat > deb_package/DEBIAN/control <<EOF
-      Package: matrix-calculator
-      Version: 1.0.0
-      Section: base
-      Priority: optional
-      Architecture: amd64
-      Maintainer: Esternit <southonlyyt@gmail.com>
-      Description: A simple matrix calculator written in C++
-      Depends: libc6 (>= 2.27)
-      EOF
-    - cp -r $CI_PROJECT_DIR/install_dir/* deb_package/
-    - dpkg-deb --build deb_package ../matrix-calculator.deb
-
-    - echo "Building RPM..."
-    - mkdir -p ~/rpmbuild/{BUILD,RPMS,SOURCES,SPECS,SRPMS}
-    - mkdir -p rpmbuildroot/usr/bin
-    - cp $BUILD_DIR/main_app rpmbuildroot/usr/bin/
-    - |
-      cat > ~/rpmbuild/SPECS/matrix-calculator.spec <<EOF
-      Name: matrix-calculator
-      Version: 1.0.0
-      Release: 1
-      Summary: A simple matrix calculator
-      License: MIT
-      Group: Development/Tools
-      BuildRoot: %{_tmppath}/%{name}-%{version}-build
-      Prefix: /usr
-
-      %description
-      A simple matrix calculator written in C++.
-
-      %files
-      /usr/bin/main_app
-
-      %prep
-      %build
-      %install
-        mkdir -p \$RPM_BUILD_ROOT/usr/bin
-        cp $BUILD_DIR/main_app \$RPM_BUILD_ROOT/usr/bin/
-
-      %clean
-        rm -rf \$RPM_BUILD_ROOT
-      EOF
-
-    - rpmbuild -bb ~/rpmbuild/SPECS/matrix-calculator.spec
+    - apt install file
+    - make install DESTDIR=install_dir
     - mkdir -p packages
-    - mv ../matrix-calculator.deb packages/
-    - find ~/rpmbuild/RPMS -name "*.rpm" -exec cp {} packages/ \;
+    - cpack -G DEB -B packages
+    - cpack -G RPM -B packages
   dependencies:
     - build-job
+    - deploy-job
   artifacts:
     paths:
       - packages/
   tags:
     - ubuntu
-
 package-test-job:
   stage: package-test
   before_script:
     - apt-get update
-    - apt-get install -y rpm
   script:
     - echo "Testing package installation..."
-    - sudo dpkg -i packages/*.deb || true
-    - sudo rpm -i --force --nodeps packages/*.rpm || true
-    - which main_app || echo "main_app not found in PATH"
-    - main_app || echo "main_app execution failed"
+    - sudo dpkg -i build/packages/*.deb || sudo rpm -i build/packages/*.rpm
+    - which main_app
+    - main_app
   dependencies:
+    - build-job
     - package-job
   artifacts:
     when: always
