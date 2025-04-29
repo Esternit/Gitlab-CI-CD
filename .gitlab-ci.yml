@@ -65,7 +65,11 @@ package-job:
   script:
     - echo "Preparing manual installation directory..."
     - cd $BUILD_DIR
+    - mkdir -p $CI_PROJECT_DIR/install_dir
     - make install DESTDIR=$CI_PROJECT_DIR/install_dir
+
+    - ls -laR $CI_PROJECT_DIR/install_dir
+    - test -f $CI_PROJECT_DIR/install_dir/usr/bin/main_app || (echo "main_app not found!" && exit 1)
 
     - echo "Building DEB..."
     - mkdir -p deb_package/DEBIAN
@@ -86,7 +90,7 @@ package-job:
     - echo "Building RPM..."
     - mkdir -p ~/rpmbuild/{BUILD,RPMS,SOURCES,SPECS,SRPMS}
     - mkdir -p rpmbuildroot/usr/bin
-    - cp $CI_PROJECT_DIR/install_dir/usr/bin/main_app rpmbuildroot/usr/bin/
+    - cp $BUILD_DIR/main_app rpmbuildroot/usr/bin/
     - |
       cat > ~/rpmbuild/SPECS/matrix-calculator.spec <<EOF
       Name: matrix-calculator
@@ -108,7 +112,7 @@ package-job:
       %build
       %install
         mkdir -p \$RPM_BUILD_ROOT/usr/bin
-        cp rpmbuildroot/usr/bin/main_app \$RPM_BUILD_ROOT/usr/bin/
+        cp $BUILD_DIR/main_app \$RPM_BUILD_ROOT/usr/bin/
 
       %clean
         rm -rf \$RPM_BUILD_ROOT
