@@ -16,7 +16,7 @@ if(NOT GTest_FOUND)
 endif()
 
 add_executable(main_app src/main.cpp src/Matrix.cpp)
-install(TARGETS main_app DESTINATION usr/local/bin)
+install(TARGETS main_app RUNTIME DESTINATION bin)
 
 enable_testing()
 add_executable(test_runner tests/test_matrix.cpp src/Matrix.cpp)
