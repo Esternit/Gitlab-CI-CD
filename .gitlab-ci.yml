@@ -65,7 +65,7 @@ package-job:
   script:
     - echo "Preparing manual installation directory..."
     - cd $BUILD_DIR
-    - make install DESTDIR=$INSTALL_DIR
+    - make install DESTDIR=$CI_PROJECT_DIR/install_dir
 
     - echo "Building DEB..."
     - mkdir -p deb_package/DEBIAN
@@ -80,13 +80,13 @@ package-job:
       Description: A simple matrix calculator written in C++
       Depends: libc6 (>= 2.27)
       EOF
-    - cp -r $INSTALL_DIR/* deb_package/
+    - cp -r $CI_PROJECT_DIR/install_dir/* deb_package/
     - dpkg-deb --build deb_package ../matrix-calculator.deb
 
     - echo "Building RPM..."
     - mkdir -p ~/rpmbuild/{BUILD,RPMS,SOURCES,SPECS,SRPMS}
     - mkdir -p rpmbuildroot/usr/bin
-    - cp $INSTALL_DIR/usr/bin/main_app rpmbuildroot/usr/bin/
+    - cp $CI_PROJECT_DIR/install_dir/usr/bin/main_app rpmbuildroot/usr/bin/
     - |
       cat > ~/rpmbuild/SPECS/matrix-calculator.spec <<EOF
       Name: matrix-calculator
