@@ -73,7 +73,7 @@ package-job:
 package-test-job:
   stage: package-test
   before_script:
-    - apt-get update rpm
+    - apt-get update && apt install -y rpm
   script:
     - echo "Testing package installation..."
     - sudo dpkg -i build/packages/*.deb || sudo rpm -i build/packages/*.rpm
