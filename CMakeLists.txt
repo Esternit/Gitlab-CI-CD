@@ -41,7 +41,7 @@ endif()
 
 add_executable(main_app src/main.cpp src/Matrix.cpp)
 
-install(TARGETS main_app DESTINATION bin)
+install(TARGETS main_app DESTINATION bin COMPONENT runtime)
 
 enable_testing()
 add_executable(test_runner tests/test_matrix.cpp src/Matrix.cpp)
