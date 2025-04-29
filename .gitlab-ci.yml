@@ -61,8 +61,7 @@ package-job:
 
     - echo "Running CPack with debug output..."
     - mkdir -p packages
-    - cd packages
-    - cpack
+    - cpack -B packages
   dependencies:
     - build-job
     - deploy-job
