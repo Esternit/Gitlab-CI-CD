@@ -92,6 +92,8 @@ package-job:
   artifacts:
     paths:
       - $BUILD_DIR/packages/
+  tags:
+    - ubuntu
 
 package-test-job:
   stage: package-test
