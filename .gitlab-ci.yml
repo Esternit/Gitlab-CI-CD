@@ -10,7 +10,8 @@ variables:
   BUILD_DIR: "build"
   ARTIFACT_NAME: "${CI_PROJECT_NAME}-${CI_COMMIT_REF_NAME}-${CI_COMMIT_SHORT_SHA}"
 
-build-job:
+# Ubuntu jobs
+build-job-ubuntu:
   stage: build
   before_script:
     - apt-get update && apt-get install -y cmake g++ make dpkg rpm
@@ -23,83 +24,83 @@ build-job:
     - cmake --build .
     - echo "Compile complete."
   artifacts:
-    name: "${ARTIFACT_NAME}-build"
+    name: "${ARTIFACT_NAME}-build-ubuntu"
     paths:
       - $BUILD_DIR
   tags:
     - ubuntu
 
-test-job:
+test-job-ubuntu:
   stage: test
-  needs: [build-job]
+  needs: [build-job-ubuntu]
   script:
     - echo "Running tests..."
     - cd $BUILD_DIR
     - ctest --verbose
   artifacts:
-    name: "${ARTIFACT_NAME}-test-results"
+    name: "${ARTIFACT_NAME}-test-results-ubuntu"
     when: always
     reports:
       junit: build/Testing/Temporary/LastTest.log
   tags:
     - ubuntu
 
-documentation-job:
+documentation-job-ubuntu:
   stage: docs
-  needs: [test-job]
+  needs: [test-job-ubuntu]
   before_script:
     - apt-get update && apt-get install -y doxygen graphviz
   script:
     - doxygen Doxyfile
     - echo "Documentation generated successfully"
   artifacts:
-    name: "${ARTIFACT_NAME}-documentation"
+    name: "${ARTIFACT_NAME}-documentation-ubuntu"
     paths:
       - html/
   tags:
     - ubuntu
 
-deploy-job:
+deploy-job-ubuntu:
   stage: deploy
-  needs: [test-job, build-job]
+  needs: [test-job-ubuntu]
   script:
     - echo "Deploying artifacts..."
     - mkdir -p /deploy
     - cp -r $BUILD_DIR/main_app /deploy/
   dependencies:
-    - build-job
-    - test-job
+    - build-job-ubuntu
   artifacts:
+    name: "${ARTIFACT_NAME}-deploy-ubuntu"
     paths:
       - /deploy/main_app
   tags:
     - ubuntu
 
-package-job:
+package-job-ubuntu:
   stage: package
-  needs: [deploy-job, build-job]
+  needs: [deploy-job-ubuntu]
   script:
     - echo "Installing for packaging..."
     - cd $BUILD_DIR
-    - apt update && apt install -y file rpm cpio fakeroot
+    - apt update && apt install -y file cpio fakeroot
     - make install DESTDIR=install_dir
     - echo "Running CPack with debug output..."
     - mkdir -p packages
-    - cpack
+    - cpack -G DEB
     - ls -l
     - ls -l packages/
   dependencies:
-    - build-job
-    - deploy-job
+    - build-job-ubuntu
   artifacts:
+    name: "${ARTIFACT_NAME}-packages-ubuntu"
     paths:
       - $BUILD_DIR/packages/
   tags:
     - ubuntu
 
-package-test-job:
+package-test-job-ubuntu:
   stage: package-test
-  needs: [package-job, build-job]
+  needs: [package-job-ubuntu]
   before_script:
     - apt-get update
   script:
@@ -116,10 +117,131 @@ package-test-job:
       exit 1;
       fi
   dependencies:
-    - build-job
-    - package-job
+    - build-job-ubuntu
+    - package-job-ubuntu
   artifacts:
-    name: "${ARTIFACT_NAME}-package-test"
+    name: "${ARTIFACT_NAME}-package-test-ubuntu"
     when: always
   tags:
     - ubuntu
+
+# CentOS jobs
+.centos-build-template: &centos-build
+  before_script:
+    - yum update -y
+    - yum install -y cmake gcc-c++ make rpm-build
+
+build-job-centos:
+  <<: *centos-build
+  stage: build
+  script:
+    - echo "Compiling the source code on CentOS..."
+    - mkdir -p $BUILD_DIR
+    - cd $BUILD_DIR
+    - cmake -DCMAKE_BUILD_TYPE=Release ..
+    - cmake --build .
+    - echo "Compile complete."
+  artifacts:
+    name: "${ARTIFACT_NAME}-build-centos"
+    paths:
+      - $BUILD_DIR
+  tags:
+    - centos-rpm
+
+test-job-centos:
+  <<: *centos-build
+  stage: test
+  needs: [build-job-centos]
+  script:
+    - echo "Running tests on CentOS..."
+    - cd $BUILD_DIR
+    - ctest --verbose
+  artifacts:
+    name: "${ARTIFACT_NAME}-test-results-centos"
+    when: always
+    reports:
+      junit: build/Testing/Temporary/LastTest.log
+  tags:
+    - centos-rpm
+
+documentation-job-centos:
+  <<: *centos-build
+  stage: docs
+  needs: [test-job-centos]
+  before_script:
+    - yum update -y
+    - yum install -y doxygen graphviz
+  script:
+    - doxygen Doxyfile
+    - echo "Documentation generated successfully"
+  artifacts:
+    name: "${ARTIFACT_NAME}-documentation-centos"
+    paths:
+      - html/
+  tags:
+    - centos-rpm
+
+deploy-job-centos:
+  <<: *centos-build
+  stage: deploy
+  needs: [test-job-centos]
+  script:
+    - echo "Deploying artifacts..."
+    - mkdir -p /deploy
+    - cp -r $BUILD_DIR/main_app /deploy/
+  dependencies:
+    - build-job-centos
+  artifacts:
+    name: "${ARTIFACT_NAME}-deploy-centos"
+    paths:
+      - /deploy/main_app
+  tags:
+    - centos-rpm
+
+package-job-centos:
+  <<: *centos-build
+  stage: package
+  needs: [deploy-job-centos]
+  script:
+    - echo "Installing for packaging on CentOS..."
+    - cd $BUILD_DIR
+    - make install DESTDIR=install_dir
+    - echo "Running CPack with debug output..."
+    - mkdir -p packages
+    - cpack -G RPM
+    - ls -l
+    - ls -l packages/
+  dependencies:
+    - build-job-centos
+  artifacts:
+    name: "${ARTIFACT_NAME}-packages-centos"
+    paths:
+      - $BUILD_DIR/packages/
+  tags:
+    - centos-rpm
+
+package-test-job-centos:
+  <<: *centos-build
+  stage: package-test
+  needs: [package-job-centos]
+  script:
+    - echo "Testing RPM package installation..."
+    - if ls $BUILD_DIR/packages/*.rpm 1>/dev/null 2>&1; then
+      sudo rpm -i $BUILD_DIR/packages/*.rpm;
+      echo "Package contents:";
+      rpm -ql MatrixCalculator;
+      echo "Testing application with sample calculation...";
+      main_app "2 2 1 2 3 4" "2 2 2 0 1 2";
+      echo "Test completed successfully";
+      else
+      echo "No RPM package found!";
+      exit 1;
+      fi
+  dependencies:
+    - build-job-centos
+    - package-job-centos
+  artifacts:
+    name: "${ARTIFACT_NAME}-package-test-centos"
+    when: always
+  tags:
+    - centos-rpm
