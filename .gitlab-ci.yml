@@ -162,23 +162,6 @@ test-job-centos:
   tags:
     - centos-rpm
 
-documentation-job-centos:
-  <<: *centos-build
-  stage: docs
-  needs: [test-job-centos]
-  dependencies: [test-job-centos]
-  before_script:
-    - yum install -y doxygen graphviz
-  script:
-    - doxygen Doxyfile
-    - echo "Documentation generated successfully"
-  artifacts:
-    name: "${ARTIFACT_NAME}-documentation-centos"
-    paths:
-      - html/
-  tags:
-    - centos-rpm
-
 deploy-job-centos:
   <<: *centos-build
   stage: deploy
