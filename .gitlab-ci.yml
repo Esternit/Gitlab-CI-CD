@@ -229,7 +229,7 @@ package-test-job-centos:
     - if ls $BUILD_DIR/packages/*.rpm 1>/dev/null 2>&1; then
       rpm -i $BUILD_DIR/packages/*.rpm;
       echo "Package contents:";
-      rpm -ql MatrixCalculator;
+      rpm -ql MatrixCalculator-1.0.0-Linux;
       echo "Testing application with sample calculation...";
       main_app "2 2 1 2 3 4" "2 2 2 0 1 2";
       echo "Test completed successfully";
