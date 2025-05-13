@@ -15,9 +15,9 @@
 ### Утилиты
 
 - CMake (>= 3.10)
+- Make
 - C++ компилятор с поддержкой C++17
 - Doxygen (для генерации документации)
-- dpkg (для создания DEB пакетов)
 
 ### Заимствованный код
 
@@ -46,6 +46,7 @@ cd build
 ```bash
 cmake -DCMAKE_BUILD_TYPE=Release ..
 cmake --build .
+make
 ```
 
 4. Запуск тестов:
