@@ -95,7 +95,6 @@ package-job:
 
 package-test-job:
   stage: package-test
-  needs: [package-job]
   before_script:
     - apt-get update && apt install -y rpm
   script:
