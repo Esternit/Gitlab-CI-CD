@@ -14,7 +14,7 @@ variables:
 build-job-ubuntu:
   stage: build
   before_script:
-    - apt-get update && apt-get install -y cmake g++ make dpkg rpm
+    - apt-get install -y cmake g++ make dpkg rpm
     - cd $CI_PROJECT_DIR
   script:
     - echo "Compiling the source code..."
@@ -84,7 +84,7 @@ package-job-ubuntu:
   script:
     - echo "Installing for packaging..."
     - cd $BUILD_DIR
-    - apt update && apt install -y file cpio fakeroot
+    - apt install -y file cpio fakeroot
     - make install DESTDIR=install_dir
     - echo "Running CPack with debug output..."
     - mkdir -p packages
@@ -102,8 +102,6 @@ package-test-job-ubuntu:
   stage: package-test
   needs: [package-job-ubuntu, build-job-ubuntu]
   dependencies: [package-job-ubuntu, build-job-ubuntu]
-  before_script:
-    - apt-get update
   script:
     - echo "Testing DEB package installation..."
     - if ls $BUILD_DIR/packages/*.deb 1>/dev/null 2>&1; then
@@ -132,7 +130,6 @@ build-job-centos:
   <<: *centos-build
   stage: build
   before_script:
-    - yum update -y
     - yum install -y cmake gcc-c++ make rpm-build
   script:
     - echo "Compiling the source code on CentOS..."

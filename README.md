@@ -12,11 +12,6 @@
 
 ## Зависимости ПО
 
-### Библиотеки
-
-- **GoogleTest** (v1.14.0) - фреймворк для модульного тестирования
-  - Автоматически загружается через CMake FetchContent
-
 ### Утилиты
 
 - CMake (>= 3.10)
@@ -57,12 +52,6 @@ cmake --build .
 
 ```bash
 ctest --verbose
-```
-
-5. Создание пакетов:
-
-```bash
-cpack
 ```
 
 ### Файлы для поставки
@@ -106,22 +95,40 @@ A * B:
 10 8
 ```
 
-### Использование библиотеки
+### Пример использования библиотеки
 
 ```cpp
-#include "Matrix.h"
+int main(int argc, char *argv[])
+{
+    try
+    {
+        if (argc != 3)
+        {
+            printUsage();
+            return 1;
+        }
 
-// Создание матрицы
-Matrix A(2, 2);
-A.set(0, 0, 1); A.set(0, 1, 2);
-A.set(1, 0, 3); A.set(1, 1, 4);
+        Matrix A = parseMatrixFromString(argv[1]);
+        Matrix B = parseMatrixFromString(argv[2]);
 
-// Основные операции
-double det = A.determinant();     // Определитель
-Matrix T = A.transpose();         // Транспонирование
-Matrix I = A.inverse();           // Обратная матрица
-int r = A.rank();                // Ранг
-Matrix P = A.power(2);           // Возведение в степень
+        std::cout << "Матрица A:" << std::endl;
+        A.display();
+        std::cout << "\nМатрица B:" << std::endl;
+        B.display();
+
+        std::cout << "\nA + B:" << std::endl;
+        (A + B).display();
+        std::cout << "\nA * B:" << std::endl;
+        (A * B).display();
+    }
+    catch (const std::exception &e)
+    {
+        std::cerr << "Ошибка: " << e.what() << std::endl;
+        return 1;
+    }
+
+    return 0;
+}
 ```
 
 ## Авторы
