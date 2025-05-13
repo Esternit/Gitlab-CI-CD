@@ -33,6 +33,7 @@ build-job-ubuntu:
 test-job-ubuntu:
   stage: test
   needs: [build-job-ubuntu]
+  dependencies: [build-job-ubuntu]
   script:
     - echo "Running tests..."
     - cd $BUILD_DIR
@@ -48,6 +49,7 @@ test-job-ubuntu:
 documentation-job-ubuntu:
   stage: docs
   needs: [test-job-ubuntu]
+  dependencies: [test-job-ubuntu]
   before_script:
     - apt-get update && apt-get install -y doxygen graphviz
   script:
@@ -62,13 +64,12 @@ documentation-job-ubuntu:
 
 deploy-job-ubuntu:
   stage: deploy
-  needs: [test-job-ubuntu]
+  needs: [test-job-ubuntu, build-job-ubuntu]
+  dependencies: [test-job-ubuntu, build-job-ubuntu]
   script:
     - echo "Deploying artifacts..."
     - mkdir -p /deploy
     - cp -r $BUILD_DIR/main_app /deploy/
-  dependencies:
-    - build-job-ubuntu
   artifacts:
     name: "${ARTIFACT_NAME}-deploy-ubuntu"
     paths:
@@ -78,7 +79,8 @@ deploy-job-ubuntu:
 
 package-job-ubuntu:
   stage: package
-  needs: [deploy-job-ubuntu]
+  needs: [deploy-job-ubuntu, build-job-ubuntu]
+  dependencies: [deploy-job-ubuntu, build-job-ubuntu]
   script:
     - echo "Installing for packaging..."
     - cd $BUILD_DIR
@@ -89,8 +91,6 @@ package-job-ubuntu:
     - cpack -G DEB
     - ls -l
     - ls -l packages/
-  dependencies:
-    - build-job-ubuntu
   artifacts:
     name: "${ARTIFACT_NAME}-packages-ubuntu"
     paths:
@@ -100,7 +100,8 @@ package-job-ubuntu:
 
 package-test-job-ubuntu:
   stage: package-test
-  needs: [package-job-ubuntu]
+  needs: [package-job-ubuntu, build-job-ubuntu]
+  dependencies: [package-job-ubuntu, build-job-ubuntu]
   before_script:
     - apt-get update
   script:
@@ -116,9 +117,6 @@ package-test-job-ubuntu:
       echo "No DEB package found!";
       exit 1;
       fi
-  dependencies:
-    - build-job-ubuntu
-    - package-job-ubuntu
   artifacts:
     name: "${ARTIFACT_NAME}-package-test-ubuntu"
     when: always
@@ -152,6 +150,7 @@ test-job-centos:
   <<: *centos-build
   stage: test
   needs: [build-job-centos]
+  dependencies: [build-job-centos]
   script:
     - echo "Running tests on CentOS..."
     - cd $BUILD_DIR
@@ -168,6 +167,7 @@ documentation-job-centos:
   <<: *centos-build
   stage: docs
   needs: [test-job-centos]
+  dependencies: [test-job-centos]
   before_script:
     - yum update -y
     - yum install -y doxygen graphviz
@@ -184,13 +184,12 @@ documentation-job-centos:
 deploy-job-centos:
   <<: *centos-build
   stage: deploy
-  needs: [test-job-centos]
+  needs: [test-job-centos, build-job-centos]
+  dependencies: [test-job-centos, build-job-centos]
   script:
     - echo "Deploying artifacts..."
     - mkdir -p /deploy
     - cp -r $BUILD_DIR/main_app /deploy/
-  dependencies:
-    - build-job-centos
   artifacts:
     name: "${ARTIFACT_NAME}-deploy-centos"
     paths:
@@ -201,7 +200,8 @@ deploy-job-centos:
 package-job-centos:
   <<: *centos-build
   stage: package
-  needs: [deploy-job-centos]
+  needs: [deploy-job-centos, build-job-centos]
+  dependencies: [deploy-job-centos, build-job-centos]
   script:
     - echo "Installing for packaging on CentOS..."
     - cd $BUILD_DIR
@@ -211,8 +211,6 @@ package-job-centos:
     - cpack -G RPM
     - ls -l
     - ls -l packages/
-  dependencies:
-    - build-job-centos
   artifacts:
     name: "${ARTIFACT_NAME}-packages-centos"
     paths:
@@ -223,7 +221,8 @@ package-job-centos:
 package-test-job-centos:
   <<: *centos-build
   stage: package-test
-  needs: [package-job-centos]
+  needs: [package-job-centos, build-job-centos]
+  dependencies: [package-job-centos, build-job-centos]
   script:
     - echo "Testing RPM package installation..."
     - if ls $BUILD_DIR/packages/*.rpm 1>/dev/null 2>&1; then
@@ -237,9 +236,6 @@ package-test-job-centos:
       echo "No RPM package found!";
       exit 1;
       fi
-  dependencies:
-    - build-job-centos
-    - package-job-centos
   artifacts:
     name: "${ARTIFACT_NAME}-package-test-centos"
     when: always
