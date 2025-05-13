@@ -126,12 +126,14 @@ package-test-job-ubuntu:
 # CentOS jobs
 .centos-build-template: &centos-build
   before_script:
-    - yum update -y
     - yum install -y cmake gcc-c++ make rpm-build
 
 build-job-centos:
   <<: *centos-build
   stage: build
+  before_script:
+    - yum update -y
+    - yum install -y cmake gcc-c++ make rpm-build
   script:
     - echo "Compiling the source code on CentOS..."
     - mkdir -p $BUILD_DIR
@@ -169,7 +171,6 @@ documentation-job-centos:
   needs: [test-job-centos]
   dependencies: [test-job-centos]
   before_script:
-    - yum update -y
     - yum install -y doxygen graphviz
   script:
     - doxygen Doxyfile
@@ -226,7 +227,7 @@ package-test-job-centos:
   script:
     - echo "Testing RPM package installation..."
     - if ls $BUILD_DIR/packages/*.rpm 1>/dev/null 2>&1; then
-      sudo rpm -i $BUILD_DIR/packages/*.rpm;
+      rpm -i $BUILD_DIR/packages/*.rpm;
       echo "Package contents:";
       rpm -ql MatrixCalculator;
       echo "Testing application with sample calculation...";
