@@ -1,5 +1,13 @@
+/**
+ * @file test_matrix.cpp
+ * @brief Модульные тесты для класса Matrix
+ *
+ * Этот файл содержит тесты для проверки корректности работы
+ * основных операций над матрицами.
+ */
+
 #include <gtest/gtest.h>
-#include "Matrix.h"
+#include "../src/Matrix.h"
 #include <fstream>
 
 void createTestFile(const std::string &filename, const std::string &content)
@@ -9,6 +17,9 @@ void createTestFile(const std::string &filename, const std::string &content)
     file.close();
 }
 
+/**
+ * @brief Тест создания матрицы
+ */
 TEST(MatrixTest, LoadFromFileTest)
 {
     std::string filename = "test_matrix.txt";
@@ -20,6 +31,9 @@ TEST(MatrixTest, LoadFromFileTest)
     EXPECT_EQ(A, expected);
 }
 
+/**
+ * @brief Тест операции сложения матриц
+ */
 TEST(MatrixTest, AdditionFromFileTest)
 {
     createTestFile("matrixA.txt", "1 2\n3 4");
@@ -32,6 +46,9 @@ TEST(MatrixTest, AdditionFromFileTest)
     EXPECT_EQ(A + B, expected);
 }
 
+/**
+ * @brief Тест операции умножения матриц
+ */
 TEST(MatrixTest, MultiplicationFromFileTest)
 {
     createTestFile("matrixA.txt", "1 2\n3 4");

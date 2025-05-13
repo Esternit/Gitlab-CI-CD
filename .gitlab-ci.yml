@@ -1,11 +1,15 @@
 stages:
   - build
   - test
+  - docs
   - deploy
   - package
   - package-test
+
 variables:
   BUILD_DIR: "build"
+  ARTIFACT_NAME: "${CI_PROJECT_NAME}-${CI_COMMIT_REF_NAME}-${CI_COMMIT_SHORT_SHA}"
+
 build-job:
   stage: build
   before_script:
@@ -19,72 +23,97 @@ build-job:
     - cmake --build .
     - echo "Compile complete."
   artifacts:
+    name: "${ARTIFACT_NAME}-build"
     paths:
       - $BUILD_DIR
   tags:
     - ubuntu
+
 test-job:
   stage: test
+  needs: [build-job]
   script:
     - echo "Running tests..."
     - cd $BUILD_DIR
     - ctest --verbose
-  dependencies:
-    - build-job
   artifacts:
+    name: "${ARTIFACT_NAME}-test-results"
     when: always
     reports:
       junit: build/Testing/Temporary/LastTest.log
   tags:
     - ubuntu
+
+documentation-job:
+  stage: docs
+  needs: [test-job]
+  before_script:
+    - apt-get update && apt-get install -y doxygen graphviz
+  script:
+    - doxygen Doxyfile
+    - echo "Documentation generated successfully"
+  artifacts:
+    name: "${ARTIFACT_NAME}-documentation"
+    paths:
+      - html/
+  tags:
+    - ubuntu
+
 deploy-job:
   stage: deploy
+  needs: [test-job]
   script:
     - echo "Deploying artifacts..."
     - mkdir -p /deploy
     - cp -r $BUILD_DIR/main_app /deploy/
-  dependencies:
-    - build-job
-    - test-job
   artifacts:
+    name: "${ARTIFACT_NAME}-deploy"
     paths:
       - /deploy/main_app
   tags:
     - ubuntu
+
 package-job:
   stage: package
+  needs: [deploy-job]
   script:
     - echo "Installing for packaging..."
     - cd $BUILD_DIR
     - apt update && apt install -y file rpm cpio fakeroot
     - make install DESTDIR=install_dir
-
     - echo "Running CPack with debug output..."
     - mkdir -p packages
     - cpack
     - ls -l
     - ls -l packages/
-  dependencies:
-    - build-job
-    - deploy-job
   artifacts:
+    name: "${ARTIFACT_NAME}-packages"
     paths:
       - $BUILD_DIR/packages/
   tags:
     - ubuntu
+
 package-test-job:
   stage: package-test
+  needs: [package-job]
   before_script:
     - apt-get update && apt install -y rpm
   script:
     - echo "Testing DEB package installation..."
-    - if ls $BUILD_DIR/packages/*.deb 1>/dev/null 2>&1; then sudo dpkg -i $BUILD_DIR/packages/*.deb; fi
-    - which main_app || true
-    - main_app || true
-  dependencies:
-    - build-job
-    - package-job
+    - if ls $BUILD_DIR/packages/*.deb 1>/dev/null 2>&1; then
+      sudo dpkg -i $BUILD_DIR/packages/*.deb;
+      dpkg -L MatrixCalculator;
+      fi
+    - echo "Testing RPM package installation..."
+    - if ls $BUILD_DIR/packages/*.rpm 1>/dev/null 2>&1; then
+      sudo rpm -i $BUILD_DIR/packages/*.rpm;
+      rpm -ql MatrixCalculator;
+      fi
+    - which main_app
+    - echo "Testing application with sample calculation..."
+    - main_app "2 2 1 2 3 4" "2 2 1 1 1 1"
   artifacts:
+    name: "${ARTIFACT_NAME}-package-test"
     when: always
   tags:
     - ubuntu
