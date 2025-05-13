@@ -226,22 +226,16 @@ package-test-job-centos:
   dependencies: [package-job-centos, build-job-centos]
   script:
     - echo "Testing RPM package installation..."
-    - echo "Available packages:"
-    - ls -l $BUILD_DIR/packages/
     - if ls $BUILD_DIR/packages/*.rpm 1>/dev/null 2>&1; then
-        PACKAGE_PATH=$(ls $BUILD_DIR/packages/*.rpm);
-        echo "Installing package: $PACKAGE_PATH";
-        rpm -i $PACKAGE_PATH;
-        echo "Package contents:";
-        PACKAGE_NAME=$(rpm -qp $PACKAGE_PATH);
-        echo "Package name: $PACKAGE_NAME";
-        rpm -ql $PACKAGE_NAME;
-        echo "Testing application with sample calculation...";
-        main_app "2 2 1 2 3 4" "2 2 2 0 1 2";
-        echo "Test completed successfully";
+      rpm -i $BUILD_DIR/packages/*.rpm;
+      echo "Package contents:";
+      rpm -ql MatrixCalculator;
+      echo "Testing application with sample calculation...";
+      main_app "2 2 1 2 3 4" "2 2 2 0 1 2";
+      echo "Test completed successfully";
       else
-        echo "No RPM package found!";
-        exit 1;
+      echo "No RPM package found!";
+      exit 1;
       fi
   artifacts:
     name: "${ARTIFACT_NAME}-package-test-centos"
