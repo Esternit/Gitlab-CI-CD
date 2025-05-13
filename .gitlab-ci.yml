@@ -228,23 +228,24 @@ package-test-job-centos:
     - echo "Testing RPM package installation..."
     - echo "Available packages:"
     - ls -la $BUILD_DIR/packages/
-    - if ls $BUILD_DIR/packages/*.rpm 1>/dev/null 2>&1; then
-        RPM_FILE=$(ls $BUILD_DIR/packages/*.rpm);
-        echo "Found RPM package: $RPM_FILE";
-        echo "Package info:";
-        rpm -qip $RPM_FILE;
-        echo "Installing package...";
-        rpm -i $RPM_FILE;
-        echo "Package contents:";
-        PACKAGE_NAME=$(rpm -q --queryformat "%{NAME}-%{VERSION}-%{RELEASE}" $(rpm -qp $RPM_FILE));
-        echo "Installed package name: $PACKAGE_NAME";
-        rpm -ql $PACKAGE_NAME;
-        echo "Testing application with sample calculation...";
-        main_app "2 2 1 2 3 4" "2 2 2 0 1 2";
-        echo "Test completed successfully";
+    - |
+      if ls $BUILD_DIR/packages/*.rpm 1>/dev/null 2>&1; then
+        RPM_FILE=$(ls $BUILD_DIR/packages/*.rpm)
+        echo "Found RPM package: $RPM_FILE"
+        echo "Package info:"
+        rpm -qip $RPM_FILE
+        echo "Installing package..."
+        rpm -i $RPM_FILE
+        echo "Package contents:"
+        PACKAGE_NAME=$(rpm -q --queryformat "%{NAME}-%{VERSION}-%{RELEASE}" $(rpm -qp $RPM_FILE))
+        echo "Installed package name: $PACKAGE_NAME"
+        rpm -ql $PACKAGE_NAME
+        echo "Testing application with sample calculation..."
+        main_app "2 2 1 2 3 4" "2 2 2 0 1 2"
+        echo "Test completed successfully"
       else
-        echo "No RPM package found!";
-        exit 1;
+        echo "No RPM package found!"
+        exit 1
       fi
   artifacts:
     name: "${ARTIFACT_NAME}-package-test-centos"
