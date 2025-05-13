@@ -98,15 +98,20 @@ package-job:
 package-test-job:
   stage: package-test
   before_script:
-    - apt-get update && apt install -y rpm
+    - apt-get update
   script:
     - echo "Testing DEB package installation..."
     - if ls $BUILD_DIR/packages/*.deb 1>/dev/null 2>&1; then
       sudo dpkg -i $BUILD_DIR/packages/*.deb;
+      echo "Package contents:";
       dpkg -L MatrixCalculator;
+      echo "Testing application with sample calculation...";
+      main_app "2 2 1 2 3 4" "2 2 2 0 1 2";
+      echo "Test completed successfully";
+      else
+      echo "No DEB package found!";
+      exit 1;
       fi
-    - echo "Testing application with sample calculation..."
-    - main_app "2 2 1 2 3 4" "2 2 1 1 1 1"
   dependencies:
     - build-job
     - package-job
