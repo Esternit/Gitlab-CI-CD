@@ -76,7 +76,6 @@ deploy-job:
 
 package-job:
   stage: package
-  needs: [deploy-job]
   script:
     - echo "Installing for packaging..."
     - cd $BUILD_DIR
@@ -87,12 +86,12 @@ package-job:
     - cpack
     - ls -l
     - ls -l packages/
+  dependencies:
+    - build-job
+    - deploy-job
   artifacts:
-    name: "${ARTIFACT_NAME}-packages"
     paths:
       - $BUILD_DIR/packages/
-  tags:
-    - ubuntu
 
 package-test-job:
   stage: package-test
@@ -113,6 +112,9 @@ package-test-job:
     - which main_app
     - echo "Testing application with sample calculation..."
     - main_app "2 2 1 2 3 4" "2 2 1 1 1 1"
+  dependencies:
+    - build-job
+    - package-job
   artifacts:
     name: "${ARTIFACT_NAME}-package-test"
     when: always
