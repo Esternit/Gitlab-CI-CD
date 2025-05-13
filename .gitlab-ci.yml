@@ -61,13 +61,14 @@ documentation-job:
 
 deploy-job:
   stage: deploy
-  needs: [test-job]
   script:
     - echo "Deploying artifacts..."
     - mkdir -p /deploy
     - cp -r $BUILD_DIR/main_app /deploy/
+  dependencies:
+    - build-job
+    - test-job
   artifacts:
-    name: "${ARTIFACT_NAME}-deploy"
     paths:
       - /deploy/main_app
   tags:
